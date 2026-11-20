@@ -1,0 +1,23 @@
+ompl_planning_demo_node:
+  ros__parameters:
+    # Path planning parameters
+    world_frame: map # frame taken as reference
+    planner_name: RRT # RRT, PRM, RRTstar, PRMstar
+    planning_bounds_x: [-8.0, 8.0] # [x_min, x_max] bounds in which the algorithm will try to find a solution, values in meters
+    planning_bounds_y: [-6.0, 6.0] # [y_min, y_max] bounds in which the algorithm will try to find a solution, values in meters
+    start_state: [0.0, 0.0, 0.0] # [X, Y, Yaw] an start state given in case a predefined planning problem wants to be solved
+    goal_state: [5.0, -1.0, 0.0] # [X, Y, Yaw] a goal state given in case a predefined planning problem wants to be solved
+    timer_period: 1.0 # TIMER PERIOD HAS TO BE HIGHER THAN SOLVING TIME
+    solving_time: 0.9 # time in seconds given to the planner to solve the problem
+
+    goal_tolerance: 0.1 # tolerance to consider the goal as reached
+    visualize_tree: True # defines whether the tree grown by the planner should be published
+
+    # Collision checking
+    octomap_service: /octomap_full # service to obtain octomap
+    global_map_topic: /map # topic that is used to obtain the map
+    robot_base_radius: 0.15 # robot radius considered for the collision checking
+
+    odometry_topic: /odom # topic to obtain the robot's odometry
+    query_goal_topic: /goal_pose # topic to obtain the goal query
+    solution_path_topic: /path # topic to obtain the solution path

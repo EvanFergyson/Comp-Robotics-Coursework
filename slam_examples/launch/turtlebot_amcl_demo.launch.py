@@ -1,0 +1,100 @@
+"""
+Created on August 26, 2025
+
+@author: Juan D. Hernandez Vega (HernandezVegaJ@cardiff.ac.uk)
+@author: Steven Silva (SilvaS1@cardiff.ac.uk)
+
+Purpose: Executes the node and launches to show the effect of amcl.
+"""
+
+from launch_ros.substitutions import FindPackageShare
+from launch_ros.actions import Node
+from launch import LaunchDescription
+from launch.actions import IncludeLaunchDescription
+from launch.launch_description_sources import PythonLaunchDescriptionSource
+
+
+def generate_launch_description():
+    """Contains all the nodes and launches to execute"""
+
+    # ===========================================
+    # ! PACKAGES DIR
+    # ===========================================
+    slam_examples_dir = FindPackageShare(package="slam_examples").find("slam_examples")
+    turtlebot3_gazebo_dir = FindPackageShare(package="turtlebot3_gazebo").find(
+        "turtlebot3_gazebo"
+    )
+
+    # ===========================================
+    # ! NODES
+    # ===========================================
+    rviz_node = Node(
+        package="rviz2",
+        executable="rviz2",
+        name="rviz2",
+        output="screen",
+        arguments=["-d", slam_examples_dir + "/rviz/slam_demo.rviz"],
+    )
+
+    map_server_node = Node(
+        package="nav2_map_server",
+        executable="map_server",
+        output="screen",
+        parameters=[
+            {"use_sim_time": True},
+            {"yaml_filename": slam_examples_dir + "/maps/mymap.yaml"},
+        ],
+    )
+
+    lifecycle_nodes = ["map_server", "amcl"]
+    use_sim_time = True
+    autostart = True
+
+    lifecycle_manager_node = Node(
+        package="nav2_lifecycle_manager",
+        executable="lifecycle_manager",
+        name="lifecycle_manager",
+        output="screen",
+        parameters=[
+            {"use_sim_time": use_sim_time},
+            {"autostart": autostart},
+            {"node_names": lifecycle_nodes},
+        ],
+    )
+
+    # ===========================================
+    # ! LAUNCHES
+    # ===========================================
+
+    tb3_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            [turtlebot3_gazebo_dir, "/launch/", "turtlebot3_house.launch.py"]
+        ),
+        launch_arguments={"x_pose": "-3", "y_pose": "1"}.items(),
+    )
+
+    amcl_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            [slam_examples_dir, "/launch/", "amcl.launch.py"]
+        ),
+    )
+
+    # ===========================================
+    # ! LAUNCH DESCRIPTION DECLARATION
+    # ===========================================
+    ld = LaunchDescription()
+
+    # ===========================================
+    # ! ADDING NODES
+    # ===========================================
+    ld.add_action(rviz_node)
+    ld.add_action(map_server_node)
+    ld.add_action(lifecycle_manager_node)
+
+    # ===========================================
+    # ! ADDING LAUNCHES
+    # ===========================================
+    ld.add_action(tb3_launch)
+    ld.add_action(amcl_launch)
+
+    return ld

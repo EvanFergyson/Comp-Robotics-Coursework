@@ -44,10 +44,10 @@ class MissionHandler(rclpy.node.Node):
 
         # bounds of the environment in the map frame (origin = where the robot spawned)
         # TODO: replace with the house bounds measured with map_bounds.py
-        x_min = float(self.declare_parameter("x_min", -7.5, any_type).value)
-        x_max = float(self.declare_parameter("x_max", 7.5, any_type).value)
-        y_min = float(self.declare_parameter("y_min", -5.0, any_type).value)
-        y_max = float(self.declare_parameter("y_max", 5.0, any_type).value)
+        x_min = float(self.declare_parameter("x_min", -4.2, any_type).value)
+        x_max = float(self.declare_parameter("x_max", 9.9, any_type).value)
+        y_min = float(self.declare_parameter("y_min", -6.0, any_type).value)
+        y_max = float(self.declare_parameter("y_max", 3.9, any_type).value)
 
         # seconds before a waypoint the robot is not reaching is skipped
         self.waypoint_timeout = float(

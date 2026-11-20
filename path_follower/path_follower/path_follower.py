@@ -21,9 +21,10 @@ from tf2_ros import TransformListener, Buffer
 from path_follower.node import Node
 
 MOVE_TOLERANCE = 0.1
-SCAN_TOLERANCE_FRONT = 0.4
+SCAN_TOLERANCE_FRONT = 0.2
 SCAN_TOLERANCE_SIDE = 0.3
 ROTATE_TOLERANCE = 0.004
+HEADING_TOLERANCE = 0.3
 
 
 class PathFollower:
@@ -229,7 +230,7 @@ class PathFollower:
             nanmin(scan_data.ranges[0:10] + scan_data.ranges[350:360])
             < SCAN_TOLERANCE_FRONT
         ):
-            self.is_obstacle_ahead = False
+            self.is_obstacle_ahead = True
         elif nanmin(scan_data.ranges[11:165]) < SCAN_TOLERANCE_SIDE:
             self.path_deviation = 0
         elif nanmin(scan_data.ranges[195:349]) < SCAN_TOLERANCE_SIDE:
@@ -257,6 +258,9 @@ class PathFollower:
 
         Follows the path previously stored"""
         self.is_moving = True
+
+        # Added by Evan Fergyson: clear a flag left over from a path that arrived while idle
+        self.new_path_arrived = False
 
         # while there are poses to follow, the next node in
         # self.following_path is taken
@@ -298,20 +302,25 @@ class PathFollower:
         # the velocities live under .twist in a TwistStamped message
         vel_msg.twist.linear.x = self.linear_velocity  # linear velocity is a constant
 
-        # while there is a certain distance to the point of interest
         while self.robot_position.calculate_distance(point) > MOVE_TOLERANCE:
-            if (
-                self.is_shutdown_initiated
-                or self.is_obstacle_ahead
-                or self.new_path_arrived
-            ):
+            if self.is_shutdown_initiated or self.new_path_arrived:
                 self.new_path_arrived = False
                 return
 
-            # define angular velocity according to an orientation error
-            speed = self.angular_velocity * self.angular_difference(point)
-            vel_msg.twist.angular.z = (
-                min(self.angular_velocity, speed) + self.path_deviation
+            angle = self.angular_difference(point)
+
+            # Added by Evan Fergyson: turn on the spot until facing the point, so the robot
+            # drives along the straight line between path nodes instead of swinging wide,
+            # and never drive forward into an obstacle the lidar sees
+            if abs(angle) > HEADING_TOLERANCE or self.is_obstacle_ahead:
+                vel_msg.twist.linear.x = 0.0
+            else:
+                vel_msg.twist.linear.x = self.linear_velocity
+
+            # same turning speed limit in both directions
+            speed = self.angular_velocity * angle
+            vel_msg.twist.angular.z = max(
+                -self.angular_velocity, min(self.angular_velocity, speed)
             )
 
             self.publish_velocity(vel_msg)

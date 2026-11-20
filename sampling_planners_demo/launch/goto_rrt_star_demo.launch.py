@@ -63,7 +63,7 @@ def generate_launch_description():
         executable="path_follower",
         name="path_follower_node",
         output="screen",
-        parameters=[{"linear_velocity": 0.3, "angular_velocity": 2.5}],
+        parameters=[{"linear_velocity": 0.2, "angular_velocity": 1.0}],
         condition=IfCondition(LaunchConfiguration("enable_move", default=True)),
     )
 

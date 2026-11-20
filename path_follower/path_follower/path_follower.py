@@ -258,6 +258,9 @@ class PathFollower:
         Follows the path previously stored"""
         self.is_moving = True
 
+        # Added by Evan Fergyson
+        self.new_path_arrived = False
+
         # while there are poses to follow, the next node in
         # self.following_path is taken
         while len(self.following_path) > 0:

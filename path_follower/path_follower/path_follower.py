@@ -226,6 +226,10 @@ class PathFollower:
         Args:
             scan_data (sensor_msgs.msg.LaserScan): contains the values measured by the lidar
         """
+        # Added by Evan Fergyson: clear the flag on every scan, so it only holds
+        # while something is actually in front of the robot
+        self.is_obstacle_ahead = False
+
         if (
             nanmin(scan_data.ranges[0:10] + scan_data.ranges[350:360])
             < SCAN_TOLERANCE_FRONT
